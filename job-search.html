@@ -30,12 +30,8 @@ body {
   background: var(--bg);
   color: var(--text);
   overflow-x: hidden;
-  cursor: none;
 }
 
-/* Cursor */
-#cur { width:8px; height:8px; background:var(--accent); border-radius:50%; position:fixed; top:0; left:0; pointer-events:none; z-index:9999; transition:transform 0.08s; }
-#cur-r { width:28px; height:28px; border:1px solid rgba(232,197,71,0.4); border-radius:50%; position:fixed; top:0; left:0; pointer-events:none; z-index:9998; transition:transform 0.25s ease; }
 
 /* Background grid */
 .grid-bg {
@@ -624,8 +620,7 @@ footer {
 </head>
 <body>
 
-<div id="cur"></div>
-<div id="cur-r"></div>
+
 <div class="grid-bg"></div>
 <svg class="lines-svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
   <line x1="0" y1="0" x2="1440" y2="900" stroke="rgba(232,197,71,0.06)" stroke-width="1"/>
@@ -712,13 +707,13 @@ footer {
     <div class="result-count" id="resultCount">Demo data — configure API for live results</div>
   </div>
 
+
   <div class="filter-row">
-    <button class="chip active" onclick="setFilter(this,'')">All</button>
-    <button class="chip" onclick="setFilter(this,'full_time')">Full-time</button>
-    <button class="chip" onclick="setFilter(this,'part_time')">Part-time</button>
-    <button class="chip" onclick="setFilter(this,'contract')">Contract</button>
-    <button class="chip" onclick="setFilter(this,'permanent')">Permanent</button>
-  </div>
+  <button class="chip active" onclick="setSort(this,'date','down')">Most Recent</button>
+  <button class="chip" onclick="setSort(this,'date','up')">Oldest First</button>
+  <button class="chip" onclick="setSort(this,'salary','down')">Highest Salary</button>
+  <button class="chip" onclick="setSort(this,'salary','up')">Lowest Salary</button>
+</div>
 
   <div class="simplify-notice">
     <div>
@@ -835,10 +830,13 @@ function toast(msg){
   setTimeout(()=>t.classList.remove('on'),3000);
 }
 
-function setFilter(el,val){
-  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
-  el.classList.add('active');filter=val;
-  if(lastKw||lastLoc)doSearch(1);
+let sortBy = 'date', sortDir = 'down';
+
+function setSort(el, by, dir) {
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  sortBy = by; sortDir = dir;
+  if (lastKw || lastLoc) doSearch(1);
 }
 
 function salaryFmt(mn,mx){
@@ -914,7 +912,7 @@ async function doSearch(page){
   const pager=document.getElementById('pager');
   grid.innerHTML='';err.classList.remove('on');loader.classList.add('on');pager.style.display='none';
   try{
-    let url=`https://api.adzuna.com/v1/api/jobs/${cfg.country}/search/${page}?app_id=${cfg.id}&app_key=${cfg.key}&results_per_page=9&what=${encodeURIComponent(kw)}&content-type=application/json`;
+let url = `https://api.adzuna.com/v1/api/jobs/${cfg.country}/search/${page}?app_id=${cfg.id}&app_key=${cfg.key}&results_per_page=9&what=${encodeURIComponent(kw)}&&sort_by=${sortBy}&sort_direction=${sortDir}&content-type=application/json`;
     if(loc)url+=`&where=${encodeURIComponent(loc)}`;
     if(filter)url+=`&contract_type=${filter}`;
     const res=await fetch(url);
